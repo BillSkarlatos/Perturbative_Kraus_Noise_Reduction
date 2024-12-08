@@ -5,7 +5,6 @@ In this Project we attempt to simulate noise in an intermediate-to-large scale Q
 ## Unperturbed Hamiltinian:
 
 ```math
-\usepackage{amsmath}
 \begin{equation*}
 H_{0} = -i
 \begin{pmatrix}
