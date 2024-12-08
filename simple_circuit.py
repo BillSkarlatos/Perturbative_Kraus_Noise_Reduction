@@ -27,3 +27,5 @@ for _ in range(n_trotter):
 
 # Draw the circuit
 print(qc.draw())
+# a = qc.draw(output='latex_source')
+# print(a)

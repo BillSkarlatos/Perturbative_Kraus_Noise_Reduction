@@ -43,3 +43,12 @@ V_{2}(t) = -i
 \end{pmatrix}
 \end{equation*}
 ```
+
+## Circuit Example
+
+```math
+\scalebox{1.0}{
+\Qcircuit @C=1.0em @R=0.2em @!R { \\
+	 	\nghost{{q} :  } & \lstick{{q} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.4})} & \gate{\mathrm{R_Y}\,(\mathrm{0.4})} & \gate{\mathrm{R_Z}\,(\mathrm{0.4})} & \gate{\mathrm{R_X}\,(\mathrm{0.4})} & \gate{\mathrm{R_Y}\,(\mathrm{0.4})} & \gate{\mathrm{R_Z}\,(\mathrm{0.4})} & \gate{\mathrm{R_X}\,(\mathrm{0.4})} & \gate{\mathrm{R_Y}\,(\mathrm{0.4})} & \gate{\mathrm{R_Z}\,(\mathrm{0.4})} & \gate{\mathrm{R_X}\,(\mathrm{0.4})} & \gate{\mathrm{R_Y}\,(\mathrm{0.4})} & \gate{\mathrm{R_Z}\,(\mathrm{0.4})} & \gate{\mathrm{R_X}\,(\mathrm{0.4})} & \gate{\mathrm{R_Y}\,(\mathrm{0.4})} & \gate{\mathrm{R_Z}\,(\mathrm{0.4})} & \qw & \qw\\
+\\ }}
+```
