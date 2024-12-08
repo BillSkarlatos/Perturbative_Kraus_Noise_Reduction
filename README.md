@@ -20,3 +20,24 @@ The evolution under $H_{0}$​ alone would follow:
 ```math
 \frac{d}{dt}\psi {t} = H_{0} \psi {t}
 ```
+
+## Perturbation Example:
+
+We used two time-dependent perturbation Hamiltonians were defined as:
+
+```math
+\begin{equation*}
+V_{1}(t) = -i
+\begin{pmatrix}
+0 & 1  \\
+-1 & 0 
+\end{pmatrix}
+
+\begin{equation*}
+V_{2}(t) = -i
+\begin{pmatrix}
+0 & i  \\
+-i & 0 
+\end{pmatrix}
+\end{equation*}
+```
