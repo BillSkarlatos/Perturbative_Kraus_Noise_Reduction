@@ -32,6 +32,7 @@ V_{1}(t) = -i
 0 & 1  \\
 -1 & 0 
 \end{pmatrix}
+\end{equation*}
 ```
 ```math
 \begin{equation*}
