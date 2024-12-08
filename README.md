@@ -41,3 +41,28 @@ V_{2}(t) = -i
 \end{pmatrix}
 \end{equation*}
 ```
+<<<<<<< HEAD
+=======
+
+## Perturbation Example:
+
+We used two time-dependent perturbation Hamiltonians were defined as:
+
+```math
+\begin{equation*}
+V_{1}(t) = -i
+\begin{pmatrix}
+0 & 1  \\
+-1 & 0 
+\end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+V_{2}(t) = -i
+\begin{pmatrix}
+0 & i  \\
+-i & 0 
+\end{pmatrix}
+\end{equation*}
+```
+>>>>>>> 7ec9107 (Update README.md)
