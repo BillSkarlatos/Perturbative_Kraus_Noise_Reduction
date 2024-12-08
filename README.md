@@ -32,7 +32,8 @@ V_{1}(t) = -i
 0 & 1  \\
 -1 & 0 
 \end{pmatrix}
-
+```
+```math
 \begin{equation*}
 V_{2}(t) = -i
 \begin{pmatrix}
