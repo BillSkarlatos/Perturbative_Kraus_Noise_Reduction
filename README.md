@@ -46,4 +46,4 @@ V_{2}(t) = -i
 
 ## Circuit Example
 
-![QC](quantum_circuit.png)
+![QC](QC.png)

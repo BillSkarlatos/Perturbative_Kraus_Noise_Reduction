@@ -37,5 +37,5 @@ print(qc.draw())
 
 # Uncomment to save the circuit plot as an image
 a = qc.draw(output='mpl')  # Generate the matplotlib figure object
-a.savefig('quantum_circuit_complex.png')  # Save the circuit plot as an image
+a.savefig('QC.png')  # Save the circuit plot as an image
 plt.show()  # Display the plot
