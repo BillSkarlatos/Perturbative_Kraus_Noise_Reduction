@@ -2,7 +2,7 @@
 
 In this Project we attempt to simulate noise in an intermediate-to-large scale Quantum Internet application and handle it using $n^{th}$ order Quantum Hamiltionian time-dependent perturbations.
 
-## Unperturbed Hamiltinian:
+## Unperturbed Hamiltonian:
 
 ```math
 \begin{equation*}
