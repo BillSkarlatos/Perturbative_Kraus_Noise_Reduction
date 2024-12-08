@@ -1,6 +1,7 @@
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import RXGate, RYGate, RZGate
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Parameters
 t = 1.0  # Evolution time
@@ -27,5 +28,7 @@ for _ in range(n_trotter):
 
 # Draw the circuit
 print(qc.draw())
-a = qc.draw(output='latex_source')
-print(a)
+# # Uncomment to get the Circcuit
+# a = qc.draw(output='mpl') 
+# a.savefig('quantum_circuit.png')  # Save the circuit plot as an image
+# print(a)
