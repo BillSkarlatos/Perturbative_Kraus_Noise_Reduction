@@ -47,3 +47,17 @@ V_{2}(t) = -i
 ## Circuit Example
 
 ![QC](QC.png)
+
+The rotation angles $(0.4)$ are placeholders for tunable parameters. In a variational algorithm, these would be optimized to minimize or maximize a cost function.
+
+```python
+# Parameters
+t = 1.0  # Evolution time
+n_trotter = 5  # Number of Trotter steps
+
+# Trotterization
+for _ in range(n_trotter):
+    unperturbed_evolution(qc, t / n_trotter)
+    perturbation_1(qc, t / n_trotter)
+    perturbation_2(qc, t / n_trotter)
+```
