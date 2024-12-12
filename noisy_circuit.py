@@ -1,6 +1,6 @@
-from qiskit import QuantumCircuit, transpile, execute
-from qiskit.providers.aer import AerSimulator
-from qiskit.providers.aer.noise import NoiseModel, depolarizing_error, thermal_relaxation_error
+from qiskit import QuantumCircuit, transpile
+from qiskit_aer import AerSimulator
+from qiskit_aer.noise import NoiseModel, depolarizing_error
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 
