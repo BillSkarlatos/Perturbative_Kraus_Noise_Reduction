@@ -22,6 +22,8 @@ qc.ry(0.4, 1)
 qc.rz(0.4, 2)
 qc.measure_all()
 
+shot_num=10240
+
 # Create noise model
 noise_model = NoiseModel()
 error_1q = depolarizing_error(0.01, 1)  # 1% depolarizing noise
@@ -38,12 +40,12 @@ ideal_circuit = transpile(qc, ideal_simulator)
 noisy_circuit = transpile(qc, noisy_simulator)
 
 # Run ideal simulation
-ideal_job = ideal_simulator.run(ideal_circuit, shots=1024)
+ideal_job = ideal_simulator.run(ideal_circuit, shots=shot_num)
 ideal_result = ideal_job.result()
 ideal_counts = ideal_result.get_counts()
 
 # Run noisy simulation without perturbation
-noisy_job = noisy_simulator.run(noisy_circuit, shots=1024)
+noisy_job = noisy_simulator.run(noisy_circuit, shots=shot_num)
 noisy_result = noisy_job.result()
 noisy_counts = noisy_result.get_counts()
 
@@ -54,7 +56,7 @@ perturbed_noise_model.add_all_qubit_quantum_error(depolarizing_error(0.005, 1), 
 perturbed_noise_model.add_all_qubit_quantum_error(depolarizing_error(0.01, 2), ['cx'])
 perturbed_simulator = AerSimulator(noise_model=perturbed_noise_model)
 perturbed_circuit = transpile(qc, perturbed_simulator)
-perturbed_job = perturbed_simulator.run(perturbed_circuit, shots=1024)
+perturbed_job = perturbed_simulator.run(perturbed_circuit, shots=shot_num)
 perturbed_result = perturbed_job.result()
 perturbed_counts = perturbed_result.get_counts()
 
@@ -93,7 +95,6 @@ print(f"Perturbed Loss: {perturbed_loss}%")
 
 # Plot results
 loss_values = [0, noisy_loss, perturbed_loss]  # Ideal loss is 0%
-print(loss_values)
 labels = ["Ideal", "Noisy", "Noisy with Perturbation"]
 
 plt.bar(labels, loss_values, color=['blue', 'red', 'green'])
