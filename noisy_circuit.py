@@ -22,10 +22,12 @@ qc.ry(0.4, 1)
 qc.rz(0.4, 2)
 qc.measure_all()
 
+basic_error=0.02
+
 # Create noise model
 noise_model = NoiseModel()
-error_1q = depolarizing_error(0.01, 1)  # 1% depolarizing noise
-error_2q = depolarizing_error(0.02, 2)  # 2% depolarizing noise
+error_1q = depolarizing_error(basic_error, 1)  # depolarizing noise
+error_2q = depolarizing_error(1.5*basic_error, 2)  # 1.5 x depolarizing noise
 noise_model.add_all_qubit_quantum_error(error_1q, ['rx', 'ry', 'rz', 'h'])
 noise_model.add_all_qubit_quantum_error(error_2q, ['cx'])
 
@@ -83,12 +85,20 @@ for shots in shot_range:
     noisy_losses.append(noisy_loss)
     perturbed_losses.append(perturbed_loss)
 
+# Calculate average losses
+avg_noisy_loss = np.mean(noisy_losses)
+avg_perturbed_loss = np.mean(perturbed_losses)
+
 # Plot results
 plt.plot(shot_range, noisy_losses, label="Noisy Loss", marker='o')
 plt.plot(shot_range, perturbed_losses, label="Perturbed Loss", marker='x')
-plt.title("Loss Percentages vs Shot Number")
+plt.title(f"Loss Percentages vs Shot Number with error rates at {basic_error*100:.1f}%, {basic_error*150:.1f}%")
 plt.xlabel("Shot Number")
 plt.ylabel("Loss Percentage")
 plt.legend()
 plt.grid()
 plt.show()
+
+# Print average losses under the graph
+print(f"Average Noisy Loss: {avg_noisy_loss:.2f}%")
+print(f"Average Perturbed Loss: {avg_perturbed_loss:.2f}%")

@@ -46,7 +46,7 @@ V_{2}(t) = -i
 
 ## Circuit Example
 
-![QC](QC.png)
+![QC](images/QC.png)
 
 The rotation angles $(0.4)$ are placeholders for tunable parameters. In a variational algorithm, these would be optimized to minimize or maximize a cost function.
 
@@ -61,3 +61,10 @@ for _ in range(n_trotter):
     perturbation_1(qc, t / n_trotter)
     perturbation_2(qc, t / n_trotter)
 ```
+
+
+## Experiment Data
+
+We have simulated the circuit across a range of measurement shots and across a few error rates.
+
+For these measurements we use the simple, 2-qubit circuit shown above and we apply a depolarizing error in 2 layers where $error_2=1.5\cdot error_1$
