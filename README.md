@@ -2,6 +2,8 @@
 
 In this Project we attempt to simulate noise in an intermediate-to-large scale Quantum Internet application and handle it using $n^{th}$ order Quantum Hamiltionian time-dependent perturbations.
 
+>This project remains a work in progress. While the results are promising they are experimental and are to be treated as such.
+
 ## Unperturbed Hamiltonian:
 
 ```math
@@ -65,6 +67,21 @@ for _ in range(n_trotter):
 
 ## Experiment Data
 
-We have simulated the circuit across a range of measurement shots and across a few error rates.
+We have simulated the circuit across a range of measurement shots and across a few error rates, with the ideally simulated circuits as a basis of comparison.
 
 For these measurements we use the simple, 2-qubit circuit shown above and we apply a depolarizing error in 2 layers where $error_2=1.5\cdot error_1$
+
+### 2% Depolarizing error
+
+After applying this (low) noise to the circuit, we take the following measurements:
+
+![2_percent](images/2_PC_err.png)
+
+Further, we measured the following averages:
+
+- Average Noisy Loss: 1.18%
+- Average Perturbed Loss: 0.68%
+
+Nearly __halving__ the measurement error (also expressed as loss).
+
+
