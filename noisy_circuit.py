@@ -22,8 +22,6 @@ qc.ry(0.4, 1)
 qc.rz(0.4, 2)
 qc.measure_all()
 
-shot_num=10240
-
 # Create noise model
 noise_model = NoiseModel()
 error_1q = depolarizing_error(0.01, 1)  # 1% depolarizing noise
@@ -31,45 +29,14 @@ error_2q = depolarizing_error(0.02, 2)  # 2% depolarizing noise
 noise_model.add_all_qubit_quantum_error(error_1q, ['rx', 'ry', 'rz', 'h'])
 noise_model.add_all_qubit_quantum_error(error_2q, ['cx'])
 
-# Define simulators
-ideal_simulator = AerSimulator()  # No noise
-noisy_simulator = AerSimulator(noise_model=noise_model)  # With noise
-
-# Transpile the circuit for the simulators
-ideal_circuit = transpile(qc, ideal_simulator)
-noisy_circuit = transpile(qc, noisy_simulator)
-
-# Run ideal simulation
-ideal_job = ideal_simulator.run(ideal_circuit, shots=shot_num)
-ideal_result = ideal_job.result()
-ideal_counts = ideal_result.get_counts()
-
-# Run noisy simulation without perturbation
-noisy_job = noisy_simulator.run(noisy_circuit, shots=shot_num)
-noisy_result = noisy_job.result()
-noisy_counts = noisy_result.get_counts()
-
-# Run noisy simulation with perturbation
-# For demonstration, mimic perturbation effect by adjusting noise (simplified for illustration)
 perturbed_noise_model = NoiseModel()
 perturbed_noise_model.add_all_qubit_quantum_error(depolarizing_error(0.005, 1), ['rx', 'ry', 'rz', 'h'])
 perturbed_noise_model.add_all_qubit_quantum_error(depolarizing_error(0.01, 2), ['cx'])
-perturbed_simulator = AerSimulator(noise_model=perturbed_noise_model)
-perturbed_circuit = transpile(qc, perturbed_simulator)
-perturbed_job = perturbed_simulator.run(perturbed_circuit, shots=shot_num)
-perturbed_result = perturbed_job.result()
-perturbed_counts = perturbed_result.get_counts()
 
-# Plot all results
-plot_histogram(
-    [ideal_counts, noisy_counts, perturbed_counts],
-    legend=["Ideal", "Noisy", "Noisy with Perturbation"],
-    title="Ideal vs Noisy vs Noisy with Perturbation",
-    bar_labels=False
-)
-# Adjust layout to fit legend
-plt.tight_layout()
-plt.show()
+# Define simulators
+ideal_simulator = AerSimulator()  # No noise
+noisy_simulator = AerSimulator(noise_model=noise_model)  # With noise
+perturbed_simulator = AerSimulator(noise_model=perturbed_noise_model)  # With perturbed noise
 
 def calculate_loss(ideal_counts, noisy_counts):
     total_shots = sum(ideal_counts.values())
@@ -84,21 +51,44 @@ def calculate_loss(ideal_counts, noisy_counts):
 
     return np.mean(loss_percentages)  # Average loss percentage
 
+shot_range = range(1024, 10241, 1024)
+noisy_losses = []
+perturbed_losses = []
 
-# Calculate average loss
-noisy_loss = calculate_loss(ideal_counts, noisy_counts)
-perturbed_loss = calculate_loss(ideal_counts, perturbed_counts)
+for shots in shot_range:
+    # Transpile the circuit for the simulators
+    ideal_circuit = transpile(qc, ideal_simulator)
+    noisy_circuit = transpile(qc, noisy_simulator)
+    perturbed_circuit = transpile(qc, perturbed_simulator)
 
-# Print loss values
-print(f"Noisy Loss: {noisy_loss}%")
-print(f"Perturbed Loss: {perturbed_loss}%")
+    # Run ideal simulation
+    ideal_job = ideal_simulator.run(ideal_circuit, shots=shots)
+    ideal_result = ideal_job.result()
+    ideal_counts = ideal_result.get_counts()
+
+    # Run noisy simulation
+    noisy_job = noisy_simulator.run(noisy_circuit, shots=shots)
+    noisy_result = noisy_job.result()
+    noisy_counts = noisy_result.get_counts()
+
+    # Run perturbed simulation
+    perturbed_job = perturbed_simulator.run(perturbed_circuit, shots=shots)
+    perturbed_result = perturbed_job.result()
+    perturbed_counts = perturbed_result.get_counts()
+
+    # Calculate losses
+    noisy_loss = calculate_loss(ideal_counts, noisy_counts)
+    perturbed_loss = calculate_loss(ideal_counts, perturbed_counts)
+
+    noisy_losses.append(noisy_loss)
+    perturbed_losses.append(perturbed_loss)
 
 # Plot results
-loss_values = [0, noisy_loss, perturbed_loss]  # Ideal loss is 0%
-labels = ["Ideal", "Noisy", "Noisy with Perturbation"]
-
-plt.bar(labels, loss_values, color=['blue', 'red', 'green'])
-plt.title("Average Loss % Compared to Ideal")
+plt.plot(shot_range, noisy_losses, label="Noisy Loss", marker='o')
+plt.plot(shot_range, perturbed_losses, label="Perturbed Loss", marker='x')
+plt.title("Loss Percentages vs Shot Number")
+plt.xlabel("Shot Number")
 plt.ylabel("Loss Percentage")
-plt.ylim(0, max(loss_values) + 5)
+plt.legend()
+plt.grid()
 plt.show()
