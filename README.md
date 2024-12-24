@@ -71,7 +71,7 @@ We have simulated the circuit across a range of measurement shots and across a f
 
 For these measurements we use the simple, 2-qubit circuit shown above and we apply a depolarizing error in 2 layers where $error_2=1.5\cdot error_1$
 
-### 2% Depolarizing error
+### 2% Depolarizing error:
 
 After applying this (low) noise to the circuit, we take the following measurements:
 
@@ -84,4 +84,28 @@ Further, we measured the following averages:
 
 Nearly __halving__ the measurement error (also expressed as loss).
 
+### 5% Depolarizing error:
 
+After applying this noise to the circuit, we take the following measurements:
+
+![2_percent](images/5_PC_err.png)
+
+Further, we measured the following averages:
+
+- Average Noisy Loss: 2.45%
+- Average Perturbed Loss: 0.61%
+
+Reducing the average loss by a __factor of 4__.
+
+### 10% Depolarizing error:
+
+After applying this (moderate) noise to the circuit, we take the following measurements:
+
+![2_percent](images/10_PC_err.png)
+
+Further, we measured the following averages:
+
+- Average Noisy Loss: 4.20%
+- Average Perturbed Loss: 0.60%
+
+Reducing the average loss by a __factor of 7__.

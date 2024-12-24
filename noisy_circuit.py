@@ -22,7 +22,7 @@ qc.ry(0.4, 1)
 qc.rz(0.4, 2)
 qc.measure_all()
 
-basic_error=0.02
+basic_error=0.1
 
 # Create noise model
 noise_model = NoiseModel()
