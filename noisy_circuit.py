@@ -5,41 +5,13 @@ from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Define the quantum circuit
-qc = QuantumCircuit(3)
-qc.rx(0.4, 0)
-qc.ry(0.4, 1)
-qc.h(2)
-qc.cx(0, 1)
-qc.cx(1, 2)
-qc.rx(0.4, 0)
-qc.ry(0.4, 1)
-qc.rz(0.4, 2)
-qc.cx(0, 1)
-qc.cx(1, 2)
-qc.rx(0.4, 0)
-qc.ry(0.4, 1)
-qc.rz(0.4, 2)
-qc.measure_all()
+"""
+COLLAPSES AFTER A CERTAIN AMMOUNT OF DATA, NOT STABLE
+"""
 
-basic_error=0.1
 
-# Create noise model
-noise_model = NoiseModel()
-error_1q = depolarizing_error(basic_error, 1)  # depolarizing noise
-error_2q = depolarizing_error(1.5*basic_error, 2)  # 1.5 x depolarizing noise
-noise_model.add_all_qubit_quantum_error(error_1q, ['rx', 'ry', 'rz', 'h'])
-noise_model.add_all_qubit_quantum_error(error_2q, ['cx'])
 
-perturbed_noise_model = NoiseModel()
-perturbed_noise_model.add_all_qubit_quantum_error(depolarizing_error(0.005, 1), ['rx', 'ry', 'rz', 'h'])
-perturbed_noise_model.add_all_qubit_quantum_error(depolarizing_error(0.01, 2), ['cx'])
-
-# Define simulators
-ideal_simulator = AerSimulator()  # No noise
-noisy_simulator = AerSimulator(noise_model=noise_model)  # With noise
-perturbed_simulator = AerSimulator(noise_model=perturbed_noise_model)  # With perturbed noise
-
+# Function to calculate loss
 def calculate_loss(ideal_counts, noisy_counts):
     total_shots = sum(ideal_counts.values())
     loss_percentages = []
@@ -53,15 +25,72 @@ def calculate_loss(ideal_counts, noisy_counts):
 
     return np.mean(loss_percentages)  # Average loss percentage
 
-shot_range = range(1024, 10241, 1024)
-noisy_losses = []
-perturbed_losses = []
+# Define the base error rates
+basic_error = 0.05
+qubit_range = range(2, 12)
+shots = 1024
+perturbation_angle = basic_error * 0.01  # Adaptive perturbation # Small perturbation in radian
 
-for shots in shot_range:
-    # Transpile the circuit for the simulators
-    ideal_circuit = transpile(qc, ideal_simulator)
-    noisy_circuit = transpile(qc, noisy_simulator)
-    perturbed_circuit = transpile(qc, perturbed_simulator)
+# Create the noise model (shared for both noisy and perturbed simulations)
+noise_model = NoiseModel()
+error_1q = depolarizing_error(basic_error, 1)  # depolarizing noise for single qubit gates
+error_2q = depolarizing_error(1.5 * basic_error, 2)  # depolarizing noise for 2-qubit gates
+noise_model.add_all_qubit_quantum_error(error_1q, ['rx', 'ry', 'rz', 'h'])
+noise_model.add_all_qubit_quantum_error(error_2q, ['cx'])
+
+# Define simulators (shared noise model)
+ideal_simulator = AerSimulator()
+noisy_simulator = AerSimulator(noise_model=noise_model)
+perturbed_simulator = AerSimulator(noise_model=noise_model)  # Same noise as noisy_simulator
+
+all_noisy_losses = []
+all_perturbed_losses = []
+
+# Refined targeted perturbation function
+def apply_selective_perturbation(circuit, epsilon):
+    for instruction in circuit.data:
+        gate = instruction.operation
+        qubits = instruction.qubits
+        if gate.name == "cx":  # Target only 'cx' gates
+            control = qubits[0]
+            target = qubits[1]
+            circuit.rz(epsilon, control._index)  # Use _index for Qubit objects
+            circuit.rz(-epsilon, target._index)  # Use _index for Qubit objects
+
+
+# Adjusted perturbation magnitude
+perturbation_angle = 0.005  # Smaller perturbation in radians
+
+# Simulation loop
+all_noisy_losses = []
+all_perturbed_losses = []
+
+for n in qubit_range:
+    # Define the quantum circuit dynamically for n qubits
+    qc = QuantumCircuit(n)
+
+    # Add some generic gates to the circuit
+    for i in range(n):
+        qc.rx(0.4, i)
+        qc.ry(0.4, i)
+        if i < n - 1:
+            qc.cx(i, i + 1)
+
+    # Transpile the circuit for the ideal simulation
+    ideal_circuit = qc.copy()
+    ideal_circuit.measure_all()
+    ideal_circuit = transpile(ideal_circuit, ideal_simulator)
+
+    # Transpile the circuit for the noisy simulation
+    noisy_circuit = qc.copy()
+    noisy_circuit.measure_all()
+    noisy_circuit = transpile(noisy_circuit, noisy_simulator)
+
+    # Apply selective perturbation to the perturbed circuit
+    perturbed_circuit = qc.copy()  # Start with the original circuit without measurement gates
+    apply_selective_perturbation(perturbed_circuit, perturbation_angle)
+    perturbed_circuit.measure_all()  # Add measurement gates after applying perturbation
+    perturbed_circuit = transpile(perturbed_circuit, perturbed_simulator)
 
     # Run ideal simulation
     ideal_job = ideal_simulator.run(ideal_circuit, shots=shots)
@@ -82,23 +111,37 @@ for shots in shot_range:
     noisy_loss = calculate_loss(ideal_counts, noisy_counts)
     perturbed_loss = calculate_loss(ideal_counts, perturbed_counts)
 
-    noisy_losses.append(noisy_loss)
-    perturbed_losses.append(perturbed_loss)
+    all_noisy_losses.append(noisy_loss)
+    all_perturbed_losses.append(perturbed_loss)
 
-# Calculate average losses
-avg_noisy_loss = np.mean(noisy_losses)
-avg_perturbed_loss = np.mean(perturbed_losses)
+# Print average losses and percentage difference
+avg_noisy_loss = np.mean(all_noisy_losses)
+avg_perturbed_loss = np.mean(all_perturbed_losses)
+percentage_difference = ((avg_perturbed_loss - avg_noisy_loss) / avg_noisy_loss) * 100
+print(f"Noisy Losses: {all_noisy_losses}")
+print(f"Perturbed Losses: {all_perturbed_losses}")
+print(f"Average Noisy Loss: {avg_noisy_loss:.2f}%")
+print(f"Average Perturbed Loss: {avg_perturbed_loss:.2f}%")
+print(f"Percentage Difference: {percentage_difference:.3f}%")
+
+
 
 # Plot results
-plt.plot(shot_range, noisy_losses, label="Noisy Loss", marker='o')
-plt.plot(shot_range, perturbed_losses, label="Perturbed Loss", marker='x')
-plt.title(f"Loss Percentages vs Shot Number with error rates at {basic_error*100:.1f}%, {basic_error*150:.1f}%")
-plt.xlabel("Shot Number")
+plt.plot(qubit_range, all_noisy_losses, label="Noisy Loss", marker='o')
+plt.plot(qubit_range, all_perturbed_losses, label="Perturbed Loss", marker='x')
+plt.title("Loss Percentages vs Number of Qubits")
+plt.xlabel("Number of Qubits")
 plt.ylabel("Loss Percentage")
 plt.legend()
 plt.grid()
 plt.show()
 
-# Print average losses under the graph
+# Print average losses
+avg_noisy_loss = np.mean(all_noisy_losses)
+avg_perturbed_loss = np.mean(all_perturbed_losses)
+print(f"Noisy Losses: {all_noisy_losses}")
+print(f"Perturbed Losses: {all_perturbed_losses}")
 print(f"Average Noisy Loss: {avg_noisy_loss:.2f}%")
 print(f"Average Perturbed Loss: {avg_perturbed_loss:.2f}%")
+print(f"Percentage difference: {abs(avg_noisy_loss-avg_perturbed_loss)/avg_noisy_loss*100:.3f}%")
+

@@ -109,3 +109,5 @@ Further, we measured the following averages:
 - Average Perturbed Loss: 0.60%
 
 Reducing the average loss by a __factor of 7__.
+
+At least for this circuit, we can already see a trend emerging where the bigger the error is, the better the perturbed circuit is performing compared to the non-perturbed one.
