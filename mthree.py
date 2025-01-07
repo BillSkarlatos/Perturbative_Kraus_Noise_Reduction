@@ -7,12 +7,14 @@ from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 import mthree
 import dataHandling as dh
+import perturbation_gen as pg
 
 # Step 1: Create the Quantum Circuit
 qc = QuantumCircuit(2, 2)
 qc.h(0)
 qc.cx(0, 1)
 qc.measure([0, 1], [0, 1])
+qc.draw('mpl')
 
 def error_mitigation(qc):
     # Step 2: Define a Noise Model
@@ -51,28 +53,23 @@ def error_mitigation(qc):
 
     # Step 3: Calculate the Noise Matrix
     # Obtain the superoperator representation of the noise model
-    noise_channels = []
-    for gate_name in noise_model._default_quantum_errors.keys():
-        error = noise_model._default_quantum_errors[gate_name]
-        superop = SuperOp(error)  # Convert error channel to SuperOp
-        noise_channels.append((gate_name, superop))
+    noise_channels = pg.get_noise_matrices(qc=qc, noise_model=noise_model)
 
     print("\nQuantum Perturbation Matrices (Noise Superoperators):")
-    for gate_name, superop in noise_channels:
+    for gate_name, superop in noise_channels.items():  # Use .items() to iterate over dictionary items
         # Generate LaTeX for all superoperators
         latex_document = "\\documentclass{article}\n\\usepackage{amsmath}\n\\usepackage{geometry}\n\\geometry{margin=1in}\n\\begin{document}\n\n"
         latex_document += "\\section*{Quantum Perturbation Matrices (Noise Superoperators)}\n"
 
-        for gate_name, superop in noise_channels:
-            latex_document += dh.format_matrix_to_latex(superop.data, gate_name) + "\n\\bigskip\n"
+        latex_document += dh.format_matrix_to_latex(superop.data, gate_name) + "\n\\bigskip\n"
 
-        latex_document += "\\end{document}"
+    latex_document += "\\end{document}"
 
-        # Save the LaTeX document to a file
-        with open("quantum_matrices.tex", "w") as f:
-            f.write(latex_document)
+    # Save the LaTeX document to a file
+    with open("quantum_matrices.tex", "w") as f:
+        f.write(latex_document)
 
-        print("LaTeX document saved as 'quantum_matrices.tex'.")
+    print("LaTeX document saved as 'quantum_matrices.tex'.")
 
     # Step 4: Simulate the Circuit with Noise
     simulator = AerSimulator(noise_model=noise_model)

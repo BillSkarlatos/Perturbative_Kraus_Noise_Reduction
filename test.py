@@ -1,41 +1,34 @@
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
-from qiskit_aer.noise import NoiseModel, depolarizing_error#, measure_error
+from qiskit_aer.noise import NoiseModel, depolarizing_error
+from qiskit.quantum_info import SuperOp
 import numpy as np
-from qiskit.visualization import circuit_drawer
-from qiskit_ibm_runtime import QiskitRuntimeService
-from qiskit.circuit.library import QFT
 
-qc = QuantumCircuit(4)
-qc.h([0, 1, 2])  # Apply Hadamard gates to qubits
-qc.cp(np.pi, 0, 1)  # Controlled phase with pi
-qc.cp(np.pi / 2, 1, 2)  # Controlled phase with pi/2
-qc.measure_all()
+# Define the quantum circuit
+qc = QuantumCircuit(2)
+qc.h(0)
+qc.cx(0, 1)
 
-# Define a noise model
+# Define the noise model
 noise_model = NoiseModel()
+dep_error_1q = depolarizing_error(0.05, 1)
+noise_model.add_all_qubit_quantum_error(dep_error_1q, ['h'])
+dep_error_2q = depolarizing_error(0.1, 2)
+noise_model.add_all_qubit_quantum_error(dep_error_2q, ['cx'])
 
-# Add depolarizing noise to all single-qubit gates
-depolarizing_1q = depolarizing_error(0.1, 1)  # 10% depolarizing error
-noise_model.add_all_qubit_quantum_error(depolarizing_1q, ['h'])
+# Create the simulator with the noise model
+simulator = AerSimulator(noise_model=noise_model)
 
-# Add depolarizing noise to two-qubit gates
-depolarizing_2q = depolarizing_error(0.03, 2)  # 3% depolarizing error
-noise_model.add_all_qubit_quantum_error(depolarizing_2q, ['cp'])
+# Transpile the circuit for the simulator
+transpiled_qc = transpile(qc, simulator)
 
+# Generate the SuperOp representation of the noisy circuit
+superop = SuperOp(transpiled_qc)
+noise_matrix = superop.data
 
-print(qc)
-# Latex drawing
-try:
-    latex_code = circuit_drawer(qc, output="latex_source")
-    print("LaTeX source generated successfully.")
-    with open("circuit.tex", "w") as f:
-        f.write(latex_code)
-    print("Exported circuit to circuit.tex. Compile it manually with pdflatex.")
-except Exception as e:
-    print(f"Error generating LaTeX: {e}")
-simulator = AerSimulator()
-result = simulator.run(qc, shots=1024).result()
-counts = result.get_counts()
-print("Measurement outcomes:", counts)
+# Compute the pseudo-inverse of the noise matrix
+pseudo_inverse = np.linalg.pinv(noise_matrix)
 
+# Verify the pseudo-inverse properties
+identity_check = np.allclose(np.dot(noise_matrix, pseudo_inverse), np.eye(noise_matrix.shape[0]))
+print(f"Is the pseudo-inverse valid? {identity_check}")
