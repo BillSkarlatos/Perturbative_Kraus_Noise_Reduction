@@ -4,6 +4,11 @@ In this Project we attempt to simulate noise in an intermediate-to-large scale Q
 
 >This project remains a work in progress. While the results are promising they are experimental and are to be treated as such.
 
+
+## Concept:
+
+We express the noise of a system as a matrix. Using $1^{st}$ order quantum perturbation we create custom gates to approximate the total product to the identity matrix ($I$), making the total system fidelity approximately 100%.
+
 ## Unperturbed Hamiltonian:
 
 ```math
