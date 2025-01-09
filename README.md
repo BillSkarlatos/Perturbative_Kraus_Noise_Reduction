@@ -2,7 +2,7 @@
 
 This repository provides tools for quantum noise correction in quantum circuits using perturbative methods and CPTP (Completely Positive Trace Preserving) projection. The implementation ensures physically consistent noise correction by leveraging the Choi matrix representation of quantum channels.
 
->This is a project under development and constsnt improvement and should be viewed and used as such.
+>This is a project under development and constant improvement and should be viewed and used as such.
 
 ## Features
 
