@@ -90,7 +90,7 @@ The noise model simulates errors like depolarizing and thermal relaxation, which
 
 ### 2. Perturbative Correction
 The noise superoperator is calculated, and a correction matrix is derived using first-order perturbation theory:
-\[ \text{Correction Matrix} = I - (\text{Noise Superoperator} - I) \]
+$\text{Correction Matrix} = I - (\text{Noise Superoperator} - I)$
 
 ### 3. CPTP Projection
 If the correction matrix does not satisfy CPTP properties, it is projected to the nearest CPTP matrix using eigenvalue adjustments.
