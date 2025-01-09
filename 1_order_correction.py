@@ -97,12 +97,41 @@ def apply_noise_correction(qc, noise_model):
 
     return noisy_counts, corrected_counts, ideal_counts, differences
 
-# Example usage
-qc = QuantumCircuit(2, 2)
-qc.h(0)
-qc.cx(0, 1)
-qc.measure([0, 1], [0, 1])
+# Define the complex 4-qubit circuit
+qc = QuantumCircuit(4, 4)
 
+# Apply Hadamard gates to all qubits to create superposition
+for qubit in range(4):
+    qc.h(qubit)
+
+# Add controlled-X (CNOT) gates to entangle qubits
+qc.cx(0, 1)
+qc.cx(1, 2)
+qc.cx(2, 3)
+
+# Apply parameterized rotations for more complexity
+theta = np.pi / 3
+qc.rx(theta, 0)
+qc.ry(theta / 2, 1)
+qc.rz(theta / 4, 2)
+
+# Add a controlled-controlled-Z (CCZ) gate
+qc.h(3)
+qc.ccx(0, 1, 3)  # Control qubits 0 and 1, target qubit 3
+qc.h(3)
+
+# Add additional single-qubit gates
+qc.x(2)
+qc.y(3)
+
+# Measure all qubits
+qc.measure(range(4), range(4))
+
+# Display the circuit
+print("Circuit:")
+print(qc)
+
+# Define the noise parameters
 p1 = 0.1  # 1-qubit gate error
 p2 = 2 * p1  # 2-qubit gate error
 
@@ -121,6 +150,13 @@ therm_error_1q = thermal_relaxation_error(t1, t2, gate_time_1q)
 therm_error_2q = thermal_relaxation_error(t1, t2, gate_time_2q).tensor(
     thermal_relaxation_error(t1, t2, gate_time_2q)
 )
+therm_error_3q = thermal_relaxation_error(t1, t2, gate_time_2q).tensor(
+    thermal_relaxation_error(t1, t2, gate_time_2q).tensor(
+        thermal_relaxation_error(t1, t2, gate_time_2q)
+    )
+)
+dep_error_3q = depolarizing_error(p2, 3)
+error_3q = dep_error_3q.compose(therm_error_3q)
 
 # Combine errors
 error_1q = dep_error_1q.compose(therm_error_1q)
@@ -128,8 +164,9 @@ error_2q = dep_error_2q.compose(therm_error_2q)
 
 # Build the noise model
 noise_model = NoiseModel()
-noise_model.add_all_qubit_quantum_error(error_1q, ['h'])
+noise_model.add_all_qubit_quantum_error(error_1q, ['h', 'rx', 'ry', 'rz', 'x', 'y'])
 noise_model.add_all_qubit_quantum_error(error_2q, ['cx'])
+noise_model.add_all_qubit_quantum_error(error_3q, ['ccx'])
 
 # Apply noise correction
 noisy_counts, corrected_counts, ideal_counts, differences = apply_noise_correction(qc, noise_model)
