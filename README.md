@@ -30,5 +30,5 @@ The evolution under $H_{0}$​ alone would follow:
 
 ## Perturbation Example:
 
-We used two time-dependent perturbation Hamiltonians were defined as:
+We used two time-dependent perturbation Hamiltonians were defined as:.
 
