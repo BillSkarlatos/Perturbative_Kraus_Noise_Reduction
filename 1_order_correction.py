@@ -1,34 +1,8 @@
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
 from qiskit_aer.noise import NoiseModel, depolarizing_error, thermal_relaxation_error
-from qiskit.quantum_info import SuperOp
+from qiskit.quantum_info import SuperOp, Choi
 import numpy as np
-import matplotlib.pyplot as plt
-
-class QuantumCircuits:
-    def __init__(self, noise_model):
-        self.noise_model = noise_model
-
-    def create_simple_circuit(self, num_qubits):
-        """Creates a simple quantum circuit with a given number of qubits."""
-        qc = QuantumCircuit(num_qubits, num_qubits)
-        qc.h(0)
-        for i in range(num_qubits - 1):
-            qc.cx(i, i + 1)
-        qc.measure(range(num_qubits), range(num_qubits))
-        return qc
-
-    def create_complex_circuit(self, num_qubits):
-        """Creates a complex quantum circuit with a given number of qubits."""
-        qc = QuantumCircuit(num_qubits, num_qubits)
-        for qubit in range(num_qubits):
-            qc.h(qubit)
-        for i in range(num_qubits - 1):
-            qc.cx(i, i + 1)
-        for qubit in range(num_qubits):
-            qc.rx(np.pi / 4, qubit)
-        qc.measure(range(num_qubits), range(num_qubits))
-        return qc
 
 def apply_noise_correction(qc, noise_model):
     """
@@ -89,6 +63,7 @@ def apply_noise_correction(qc, noise_model):
     ideal_result = ideal_simulator.run(transpile(ideal_qc, ideal_simulator), shots=1024).result()
     ideal_counts = ideal_result.get_counts()
 
+
     # Calculate differences
     def calculate_difference(counts1, counts2):
         total_shots = sum(counts1.values())
@@ -101,12 +76,15 @@ def apply_noise_correction(qc, noise_model):
     return noisy_counts, corrected_counts, ideal_counts, differences
 
 # Example usage
-qc = QuantumCircuit(2, 2)
+qc = QuantumCircuit(5, 2)
 qc.h(0)
+qc.h(2)
+qc.h(3)
 qc.cx(0, 1)
+qc.cx(3, 4)
 qc.measure([0, 1], [0, 1])
 
-p1 = 0.1  # 1-qubit gate error
+p1 = 0.01  # 1-qubit gate error
 p2 = 2 * p1  # 2-qubit gate error
 
 # Thermal relaxation parameters
@@ -137,25 +115,21 @@ noise_model.add_all_qubit_quantum_error(error_2q, ['cx'])
 # Apply noise correction
 noisy_counts, corrected_counts, ideal_counts, differences = apply_noise_correction(qc, noise_model)
 
-# Visualize results
-def plot_results(noisy_counts, corrected_counts, ideal_counts):
-    states = sorted(set(noisy_counts.keys()) | set(corrected_counts.keys()) | set(ideal_counts.keys()))
-    noisy_values = [noisy_counts.get(state, 0) for state in states]
-    corrected_values = [corrected_counts.get(state, 0) for state in states]
-    ideal_values = [ideal_counts.get(state, 0) for state in states]
+# Print results in a more understandable way
+print(qc)
+print("Results:")
+print("Noisy Counts:")
+for state, count in sorted(noisy_counts.items()):
+    print(f"  State {state}: {count}")
 
-    x = range(len(states))
+print("\nCorrected Counts:")
+for state, count in sorted(corrected_counts.items()):
+    print(f"  State {state}: {count}")
 
-    plt.figure(figsize=(10, 6))
-    plt.bar(x, noisy_values, width=0.2, label="Noisy", align='center')
-    plt.bar([i + 0.2 for i in x], corrected_values, width=0.2, label="Corrected", align='center')
-    plt.bar([i + 0.4 for i in x], ideal_values, width=0.2, label="Ideal", align='center')
+print("\nIdeal Counts:")
+for state, count in sorted(ideal_counts.items()):
+    print(f"  State {state}: {count}")
 
-    plt.xticks([i + 0.2 for i in x], states)
-    plt.xlabel("Quantum States")
-    plt.ylabel("Counts")
-    plt.title("Comparison of Noisy, Corrected, and Ideal Results")
-    plt.legend()
-    plt.show()
-
-plot_results(noisy_counts, corrected_counts, ideal_counts)
+print("\nDifferences (Probability):")
+for state, diff in sorted(differences.items()):
+    print(f"  State {state}: {diff:.4f}")
