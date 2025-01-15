@@ -5,6 +5,31 @@ from qiskit.quantum_info import SuperOp
 import numpy as np
 import matplotlib.pyplot as plt
 
+class QuantumCircuits:
+    def __init__(self, noise_model):
+        self.noise_model = noise_model
+
+    def create_simple_circuit(self, num_qubits):
+        """Creates a simple quantum circuit with a given number of qubits."""
+        qc = QuantumCircuit(num_qubits, num_qubits)
+        qc.h(0)
+        for i in range(num_qubits - 1):
+            qc.cx(i, i + 1)
+        qc.measure(range(num_qubits), range(num_qubits))
+        return qc
+
+    def create_complex_circuit(self, num_qubits):
+        """Creates a complex quantum circuit with a given number of qubits."""
+        qc = QuantumCircuit(num_qubits, num_qubits)
+        for qubit in range(num_qubits):
+            qc.h(qubit)
+        for i in range(num_qubits - 1):
+            qc.cx(i, i + 1)
+        for qubit in range(num_qubits):
+            qc.rx(np.pi / 4, qubit)
+        qc.measure(range(num_qubits), range(num_qubits))
+        return qc
+
 def apply_noise_correction(qc, noise_model):
     """
     Applies noise correction to a quantum circuit using a perturbative approach.
