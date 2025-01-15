@@ -68,7 +68,7 @@ qc.h(2)
 qc.measure([0, 2], [0, 1])
 
 # Noise Model Setup
-p1 = 0.1
+p1 = 0.01
 p2 = 2 * p1
 t1 = 50e3
 t2 = 70e3
@@ -91,44 +91,6 @@ noise_model.add_all_qubit_quantum_error(error_2q, ['cx'])
 
 # Apply noise correction
 noisy_counts, corrected_counts, ideal_counts = apply_noise_correction(qc, noise_model)
-
-# Results
-print("Noisy Counts:", noisy_counts)
-print("Corrected Counts:", corrected_counts)
-print("Ideal Counts:", ideal_counts)
-
-# Calculate percentage difference
-def calculate_percentage_difference(measured_counts, ideal_counts):
-    total_ideal = sum(ideal_counts.values())
-    percentage_differences = {}
-    for state in ideal_counts:
-        ideal_value = ideal_counts.get(state, 0) / total_ideal
-        measured_value = measured_counts.get(state, 0) / total_ideal
-        percentage_differences[state] = abs(measured_value - ideal_value) / ideal_value * 100 if ideal_value > 0 else 0
-    return percentage_differences
-
-def calculate_average_percentage_difference(percentage_differences):
-    if not percentage_differences:
-        return 0
-    return sum(percentage_differences.values()) / len(percentage_differences)
-
-noisy_diff = calculate_percentage_difference(noisy_counts, ideal_counts)
-corrected_diff = calculate_percentage_difference(corrected_counts, ideal_counts)
-
-average_noisy_diff = calculate_average_percentage_difference(noisy_diff)
-average_corrected_diff = calculate_average_percentage_difference(corrected_diff)
-
-print("\nPercentage Difference (Noisy vs Ideal):")
-for state, diff in noisy_diff.items():
-    print(f"  State {state}: {diff:.2f}%")
-
-print(f"Average Percentage Difference (Noisy vs Ideal): {average_noisy_diff:.2f}%")
-
-print("\nPercentage Difference (Corrected vs Ideal):")
-for state, diff in corrected_diff.items():
-    print(f"  State {state}: {diff:.2f}%")
-
-print(f"Average Percentage Difference (Corrected vs Ideal): {average_corrected_diff:.2f}%")
 
 # Visualize results with matplotlib
 states = sorted(set(noisy_counts.keys()).union(corrected_counts.keys(), ideal_counts.keys()))
