@@ -1,21 +1,9 @@
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
 from qiskit_aer.noise import NoiseModel, depolarizing_error, thermal_relaxation_error
-from qiskit.quantum_info import SuperOp, Choi
+from qiskit.quantum_info import SuperOp
 import numpy as np
-
-def project_to_cptp(choi):
-    """
-    Project a Choi matrix to the closest CPTP matrix by ensuring eigenvalues are non-negative.
-    """
-    choi_matrix = choi.data
-    # Perform eigen decomposition
-    eigvals, eigvecs = np.linalg.eigh(choi_matrix)
-    # Set negative eigenvalues to zero
-    eigvals[eigvals < 0] = 0
-    # Reconstruct the Choi matrix
-    projected_matrix = eigvecs @ np.diag(eigvals) @ eigvecs.conj().T
-    return Choi(projected_matrix)
+import matplotlib.pyplot as plt
 
 def apply_noise_correction(qc, noise_model):
     """
@@ -37,15 +25,6 @@ def apply_noise_correction(qc, noise_model):
 
     # Apply first-order correction
     correction_matrix = identity_matrix - perturbation_matrix
-
-    # Create a Choi matrix for the correction
-    choi = Choi(correction_matrix)
-    if not choi.is_cptp():
-        print("Correction superoperator is not CPTP. Projecting to CPTP.")
-        choi = project_to_cptp(choi)
-
-    # Convert the CPTP Choi matrix back to a SuperOp
-    correction_superop = SuperOp(choi)
 
     # Simulate the noisy circuit
     noisy_qc = quantum_ops.copy()
@@ -84,7 +63,6 @@ def apply_noise_correction(qc, noise_model):
     ideal_qc.measure_all()
     ideal_result = ideal_simulator.run(transpile(ideal_qc, ideal_simulator), shots=1024).result()
     ideal_counts = ideal_result.get_counts()
-
 
     # Calculate differences
     def calculate_difference(counts1, counts2):
@@ -134,20 +112,25 @@ noise_model.add_all_qubit_quantum_error(error_2q, ['cx'])
 # Apply noise correction
 noisy_counts, corrected_counts, ideal_counts, differences = apply_noise_correction(qc, noise_model)
 
-# Print results in a more understandable way
-print("Results:")
-print("Noisy Counts:")
-for state, count in sorted(noisy_counts.items()):
-    print(f"  State {state}: {count}")
+# Visualize results
+def plot_results(noisy_counts, corrected_counts, ideal_counts):
+    states = sorted(set(noisy_counts.keys()) | set(corrected_counts.keys()) | set(ideal_counts.keys()))
+    noisy_values = [noisy_counts.get(state, 0) for state in states]
+    corrected_values = [corrected_counts.get(state, 0) for state in states]
+    ideal_values = [ideal_counts.get(state, 0) for state in states]
 
-print("\nCorrected Counts:")
-for state, count in sorted(corrected_counts.items()):
-    print(f"  State {state}: {count}")
+    x = range(len(states))
 
-print("\nIdeal Counts:")
-for state, count in sorted(ideal_counts.items()):
-    print(f"  State {state}: {count}")
+    plt.figure(figsize=(10, 6))
+    plt.bar(x, noisy_values, width=0.2, label="Noisy", align='center')
+    plt.bar([i + 0.2 for i in x], corrected_values, width=0.2, label="Corrected", align='center')
+    plt.bar([i + 0.4 for i in x], ideal_values, width=0.2, label="Ideal", align='center')
 
-print("\nDifferences (Probability):")
-for state, diff in sorted(differences.items()):
-    print(f"  State {state}: {diff:.4f}")
+    plt.xticks([i + 0.2 for i in x], states)
+    plt.xlabel("Quantum States")
+    plt.ylabel("Counts")
+    plt.title("Comparison of Noisy, Corrected, and Ideal Results")
+    plt.legend()
+    plt.show()
+
+plot_results(noisy_counts, corrected_counts, ideal_counts)
