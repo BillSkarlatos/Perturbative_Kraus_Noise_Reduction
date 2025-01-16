@@ -1,6 +1,6 @@
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
-from qiskit_aer.noise import NoiseModel, depolarizing_error, thermal_relaxation_error
+from qiskit_aer.noise import NoiseModel, depolarizing_error, thermal_relaxation_error, amplitude_damping_error
 from qiskit.quantum_info import Choi, Kraus
 import numpy as np
 import cvxpy as cp
@@ -58,46 +58,71 @@ def reduce_noise_in_circuit(circuit, noise_model):
 
     return optimized_noise_model
 
-# Step 1: Create a quantum circuit
-qc = QuantumCircuit(4)
-qc.h(0)
-qc.cx(0, 1)
-qc.measure_all()
+# Step 1: Create a quantum teleportation circuit
+qc = QuantumCircuit(3, 2)
 
-# Step 2: Define a noise model
+# For this example, we'll prepare |ψ⟩ = |+⟩ = (|0⟩ + |1⟩)/sqrt(2)
+qc.h(0)  # Message qubit is now in superposition
+
+qc.h(1)  # Apply a Hadamard gate on qubit 1
+qc.cx(1, 2)  # Apply a CNOT gate with qubit 1 as control and qubit 2 as target
+
+qc.cx(0, 1)  # CNOT gate with qubit 0 as control and qubit 1 as target
+qc.h(0)  # Hadamard gate on qubit 0
+qc.measure(0, 0)  # Measure qubit 0
+qc.measure(1, 1)  # Measure qubit 1
+
+qc.cx(1, 2)  # Apply a CNOT gate if classical bit 1 is 1
+qc.cz(0, 2)  # Apply a Z gate if classical bit 0 is 1
+
+# Visualize the circuit
+print("Quantum Teleportation Circuit:")
+print(qc.draw())
+
+# Step 2: Define the noise model
 noise_model = NoiseModel()
 
 # Add depolarizing error
-depol_error = depolarizing_error(0.03, 1)
-instructions = ['id', 'u1', 'u2', 'u3']
-for instr in instructions:
-    if instr not in noise_model.noise_instructions:
-        noise_model.add_all_qubit_quantum_error(depol_error, instr)
+depol_error_1q = depolarizing_error(0.02, 1)  # 2% depolarizing noise for 1-qubit gates
+depol_error_2q = depolarizing_error(0.05, 2)  # 5% depolarizing noise for 2-qubit gates
 
 # Add thermal relaxation error
-thermal_error = thermal_relaxation_error(50e-6, 30e-6, 0.03)
-for instr in instructions:
-    if instr not in noise_model.noise_instructions:
-        noise_model.add_all_qubit_quantum_error(thermal_error, instr)
+thermal_error_1q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=20e-6)
+thermal_error_2q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=40e-6)
 
-# Step 3: Simulate the circuit with the noisy model
+# Add amplitude damping error
+amp_damp_error = amplitude_damping_error(0.1)  # 10% probability of amplitude damping
+
+# Combine errors (composite errors)
+composite_1q_error = depol_error_1q.compose(thermal_error_1q)
+composite_2q_error = depol_error_2q.compose(thermal_error_2q)
+
+# Step 3: Add errors to specific gates in the noise model
+# Single-qubit gates
+noise_model.add_all_qubit_quantum_error(composite_1q_error, ['u1', 'u2', 'u3', 'id'])
+# Two-qubit gates
+noise_model.add_all_qubit_quantum_error(composite_2q_error, ['cx'])
+# Amplitude damping specifically to `id` gate
+noise_model.add_all_qubit_quantum_error(amp_damp_error, ['id'])
+
+# Step 4: Simulate the circuit with the noisy model
 noisy_backend = AerSimulator(noise_model=noise_model)
 transpiled_circuit_noisy = transpile(qc, noisy_backend)
 job_noisy = noisy_backend.run(transpiled_circuit_noisy, shots=1024)
 result_noisy = job_noisy.result()
 counts_noisy = result_noisy.get_counts()
 
-# Step 4: Optimize the noise model
+# Step 5: Optimize the noise model
 optimized_noise_model = reduce_noise_in_circuit(qc, noise_model)
 
-# Step 5: Simulate the circuit with the optimized noise model
+# Step 6: Simulate the circuit with the optimized noise model
 optimized_backend = AerSimulator(noise_model=optimized_noise_model)
 transpiled_circuit_optimized = transpile(qc, optimized_backend)
 job_optimized = optimized_backend.run(transpiled_circuit_optimized, shots=1024)
 result_optimized = job_optimized.result()
 counts_optimized = result_optimized.get_counts()
 
-# Step 6: Simulate the ideal circuit
+# Step 7: Simulate the ideal circuit
 ideal_backend = AerSimulator()
 transpiled_circuit_ideal = transpile(qc, ideal_backend)
 job_ideal = ideal_backend.run(transpiled_circuit_ideal, shots=1024)
