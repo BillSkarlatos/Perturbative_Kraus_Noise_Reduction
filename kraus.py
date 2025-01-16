@@ -68,14 +68,14 @@ qc.measure_all()
 noise_model = NoiseModel()
 
 # Add depolarizing error
-depol_error = depolarizing_error(0.01, 1)
+depol_error = depolarizing_error(0.03, 1)
 instructions = ['id', 'u1', 'u2', 'u3']
 for instr in instructions:
     if instr not in noise_model.noise_instructions:
         noise_model.add_all_qubit_quantum_error(depol_error, instr)
 
 # Add thermal relaxation error
-thermal_error = thermal_relaxation_error(50e-6, 30e-6, 0.01)
+thermal_error = thermal_relaxation_error(50e-6, 30e-6, 0.03)
 for instr in instructions:
     if instr not in noise_model.noise_instructions:
         noise_model.add_all_qubit_quantum_error(thermal_error, instr)
@@ -104,29 +104,36 @@ job_ideal = ideal_backend.run(transpiled_circuit_ideal, shots=1024)
 result_ideal = job_ideal.result()
 counts_ideal = result_ideal.get_counts()
 
-# Step 7: Output results
-print("Simulation results with noisy model:")
-print(counts_noisy)
-print("\nSimulation results with optimized noise model:")
-print(counts_optimized)
-print("\nSimulation results with ideal model:")
-print(counts_ideal)
+# Debugging step: Ensure consistency in printed and plotted data
+print("Raw results from simulation:")
+print("Noisy counts:", counts_noisy)
+print("Optimized counts:", counts_optimized)
+print("Ideal counts:", counts_ideal)
 
-# Step 8: Compare results visually
+# Transform results into dictionaries for visualization
 counts_noisy_dict = {str(k): v for k, v in counts_noisy.items()}
 counts_optimized_dict = {str(k): v for k, v in counts_optimized.items()}
 counts_ideal_dict = {str(k): v for k, v in counts_ideal.items()}
 
-# Flatten the results into a single dictionary for compatibility
-results_flattened = {
-    "Noisy Model": counts_noisy_dict,
-    "Optimized Noise Model": counts_optimized_dict,
-    "Ideal Model": counts_ideal_dict
-}
+# # Debugging step: Verify transformed data
+# print("\nTransformed data for plotting:")
+# print("Noisy counts (dict):", counts_noisy_dict)
+# print("Optimized counts (dict):", counts_optimized_dict)
+# print("Ideal counts (dict):", counts_ideal_dict)
 
-# Plot comparison
-plot_histogram([counts_noisy_dict, counts_optimized_dict, counts_ideal_dict],
-               legend=["Noisy Model", "Optimized Noise Model", "Ideal Model"],
-               title="Comparison of Simulation Results", bar_labels=True)
+# Ensure alignment between printed and plotted data
+assert counts_noisy_dict == {str(k): v for k, v in counts_noisy.items()}, "Noisy data mismatch!"
+assert counts_optimized_dict == {str(k): v for k, v in counts_optimized.items()}, "Optimized data mismatch!"
+assert counts_ideal_dict == {str(k): v for k, v in counts_ideal.items()}, "Ideal data mismatch!"
+
+# Reconfirm data alignment with the legend
+plot_histogram(
+    [counts_noisy_dict, counts_optimized_dict, counts_ideal_dict],
+    legend=["Noisy Model", "Optimized Noise Model", "Ideal Model"],
+    title="Comparison of Simulation Results",
+    bar_labels=True
+)
 plt.show()
+
+
 
