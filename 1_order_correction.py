@@ -4,19 +4,6 @@ from qiskit_aer.noise import NoiseModel, depolarizing_error, thermal_relaxation_
 from qiskit.quantum_info import SuperOp, Choi
 import numpy as np
 
-def project_to_cptp(choi):
-    """
-    Project a Choi matrix to the closest CPTP matrix by ensuring eigenvalues are non-negative.
-    """
-    choi_matrix = choi.data
-    # Perform eigen decomposition
-    eigvals, eigvecs = np.linalg.eigh(choi_matrix)
-    # Set negative eigenvalues to zero
-    eigvals[eigvals < 0] = 0
-    # Reconstruct the Choi matrix
-    projected_matrix = eigvecs @ np.diag(eigvals) @ eigvecs.conj().T
-    return Choi(projected_matrix)
-
 def apply_noise_correction(qc, noise_model):
     """
     Applies noise correction to a quantum circuit using a perturbative approach.
@@ -37,15 +24,6 @@ def apply_noise_correction(qc, noise_model):
 
     # Apply first-order correction
     correction_matrix = identity_matrix - perturbation_matrix
-
-    # Create a Choi matrix for the correction
-    choi = Choi(correction_matrix)
-    if not choi.is_cptp():
-        print("Correction superoperator is not CPTP. Projecting to CPTP.")
-        choi = project_to_cptp(choi)
-
-    # Convert the CPTP Choi matrix back to a SuperOp
-    correction_superop = SuperOp(choi)
 
     # Simulate the noisy circuit
     noisy_qc = quantum_ops.copy()
@@ -172,6 +150,7 @@ noise_model.add_all_qubit_quantum_error(error_3q, ['ccx'])
 noisy_counts, corrected_counts, ideal_counts, differences = apply_noise_correction(qc, noise_model)
 
 # Print results in a more understandable way
+print(qc)
 print("Results:")
 print("Noisy Counts:")
 for state, count in sorted(noisy_counts.items()):
