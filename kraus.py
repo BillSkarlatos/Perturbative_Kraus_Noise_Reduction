@@ -58,40 +58,56 @@ def reduce_noise_in_circuit(circuit, noise_model):
 
     return optimized_noise_model
 
-# Step 1: Create a quantum teleportation circuit
-qc = QuantumCircuit(3, 2)
+from qiskit import QuantumCircuit
 
-# For this example, we'll prepare |ψ⟩ = |+⟩ = (|0⟩ + |1⟩)/sqrt(2)
+from qiskit import QuantumCircuit
+
+# Step 1: Create a more complex quantum teleportation circuit
+qc = QuantumCircuit(5, 5)
+
+# Step 2: Prepare |ψ⟩ = |+⟩ = (|0⟩ + |1⟩)/sqrt(2) on the message qubit (qubit 0)
 qc.h(0)  # Message qubit is now in superposition
 
+# Step 3: Create an entangled pair between qubits 1 and 2
 qc.h(1)  # Apply a Hadamard gate on qubit 1
 qc.cx(1, 2)  # Apply a CNOT gate with qubit 1 as control and qubit 2 as target
 
+# Step 4: Entangle the message qubit with qubit 1
 qc.cx(0, 1)  # CNOT gate with qubit 0 as control and qubit 1 as target
 qc.h(0)  # Hadamard gate on qubit 0
-qc.measure(0, 0)  # Measure qubit 0
-qc.measure(1, 1)  # Measure qubit 1
 
+# Step 5: Measure qubits 0 and 1 (Bell-state measurements)
+qc.measure(0, 0)  # Measure qubit 0 into classical bit 0
+qc.measure(1, 1)  # Measure qubit 1 into classical bit 1
+
+# Step 6: Conditional operations on qubit 2 based on measurement results
 qc.cx(1, 2)  # Apply a CNOT gate if classical bit 1 is 1
 qc.cz(0, 2)  # Apply a Z gate if classical bit 0 is 1
 
+# Step 7: Add operations on auxiliary qubits 3 and 4
+for i in range(3, 5):
+    qc.h(i)  # Apply Hadamard gates to create superpositions
+    qc.cx(i - 1, i)  # Entangle each qubit with the previous one
+    qc.measure(i, i)  # Measure each qubit into the corresponding classical bit
+
 # Visualize the circuit
-print("Quantum Teleportation Circuit:")
+print("Enhanced Quantum Teleportation Circuit:")
 print(qc.draw())
+
 
 # Step 2: Define the noise model
 noise_model = NoiseModel()
 
 # Add depolarizing error
-depol_error_1q = depolarizing_error(0.02, 1)  # 2% depolarizing noise for 1-qubit gates
-depol_error_2q = depolarizing_error(0.05, 2)  # 5% depolarizing noise for 2-qubit gates
+depol_error_1q = depolarizing_error(0.01, 1)  # 2% depolarizing noise for 1-qubit gates
+depol_error_2q = depolarizing_error(0.025, 2)  # 5% depolarizing noise for 2-qubit gates
 
 # Add thermal relaxation error
 thermal_error_1q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=20e-6)
 thermal_error_2q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=40e-6)
 
 # Add amplitude damping error
-amp_damp_error = amplitude_damping_error(0.1)  # 10% probability of amplitude damping
+amp_damp_error = amplitude_damping_error(0.05)  # 10% probability of amplitude damping
 
 # Combine errors (composite errors)
 composite_1q_error = depol_error_1q.compose(thermal_error_1q)
@@ -151,14 +167,42 @@ assert counts_noisy_dict == {str(k): v for k, v in counts_noisy.items()}, "Noisy
 assert counts_optimized_dict == {str(k): v for k, v in counts_optimized.items()}, "Optimized data mismatch!"
 assert counts_ideal_dict == {str(k): v for k, v in counts_ideal.items()}, "Ideal data mismatch!"
 
-# Reconfirm data alignment with the legend
-plot_histogram(
-    [counts_noisy_dict, counts_optimized_dict, counts_ideal_dict],
-    legend=["Noisy Model", "Optimized Noise Model", "Ideal Model"],
-    title="Comparison of Simulation Results",
-    bar_labels=True
-)
-plt.show()
+
+# Function to plot results as scatter plots
+def plot_results_as_dots(results, labels, title):
+    """
+    Plot quantum simulation results as scatter plots.
+
+    Args:
+    - results: List of dictionaries containing simulation results.
+    - labels: List of strings for the labels of each dataset.
+    - title: Title of the plot.
+    """
+    plt.figure(figsize=(10, 6))
+    marker_styles = ['o', 's', '^']  # Different markers for each dataset
+
+    # Iterate through each result set
+    for i, result in enumerate(results):
+        x = list(result.keys())  # Extract bitstrings
+        y = list(result.values())  # Extract counts
+        plt.scatter(x, y, label=labels[i], marker=marker_styles[i % len(marker_styles)], s=100)
+
+    plt.xlabel("Bitstrings")
+    plt.ylabel("Counts")
+    plt.title(title)
+    plt.legend()
+    plt.xticks(rotation=45, ha='right')
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+# Prepare data for plotting
+results = [counts_noisy_dict, counts_optimized_dict, counts_ideal_dict]
+labels = ["Noisy Model", "Optimized Noise Model", "Ideal Model"]
+
+# Plot the results as scatter plots
+plot_results_as_dots(results, labels, "Comparison of Simulation Results")
+
 
 
 
