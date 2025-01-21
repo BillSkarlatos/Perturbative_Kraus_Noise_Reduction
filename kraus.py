@@ -7,6 +7,34 @@ import cvxpy as cp
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 
+# Function to plot results as scatter plots
+def plot_results_as_dots(results, labels, title):
+    """
+    Plot quantum simulation results as scatter plots.
+
+    Args:
+    - results: List of dictionaries containing simulation results.
+    - labels: List of strings for the labels of each dataset.
+    - title: Title of the plot.
+    """
+    plt.figure(figsize=(10, 6))
+    marker_styles = ['o', 's', '^']  # Different markers for each dataset
+
+    # Iterate through each result set
+    for i, result in enumerate(results):
+        x = list(result.keys())  # Extract bitstrings
+        y = list(result.values())  # Extract counts
+        plt.scatter(x, y, label=labels[i], marker=marker_styles[i % len(marker_styles)], s=100)
+
+    plt.xlabel("Bitstrings")
+    plt.ylabel("Counts")
+    plt.title(title)
+    plt.legend()
+    plt.xticks(rotation=45, ha='right')
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
 def is_cptp(choi_matrix):
     """Check if a Choi matrix represents a CPTP map."""
     eigenvalues = np.linalg.eigvals(choi_matrix)
@@ -63,7 +91,7 @@ from qiskit import QuantumCircuit
 from qiskit import QuantumCircuit
 
 # Step 1: Create a more complex quantum teleportation circuit
-qc = QuantumCircuit(5, 5)
+qc = QuantumCircuit(6, 5)
 
 # Step 2: Prepare |ψ⟩ = |+⟩ = (|0⟩ + |1⟩)/sqrt(2) on the message qubit (qubit 0)
 qc.h(0)  # Message qubit is now in superposition
@@ -167,34 +195,6 @@ assert counts_noisy_dict == {str(k): v for k, v in counts_noisy.items()}, "Noisy
 assert counts_optimized_dict == {str(k): v for k, v in counts_optimized.items()}, "Optimized data mismatch!"
 assert counts_ideal_dict == {str(k): v for k, v in counts_ideal.items()}, "Ideal data mismatch!"
 
-
-# Function to plot results as scatter plots
-def plot_results_as_dots(results, labels, title):
-    """
-    Plot quantum simulation results as scatter plots.
-
-    Args:
-    - results: List of dictionaries containing simulation results.
-    - labels: List of strings for the labels of each dataset.
-    - title: Title of the plot.
-    """
-    plt.figure(figsize=(10, 6))
-    marker_styles = ['o', 's', '^']  # Different markers for each dataset
-
-    # Iterate through each result set
-    for i, result in enumerate(results):
-        x = list(result.keys())  # Extract bitstrings
-        y = list(result.values())  # Extract counts
-        plt.scatter(x, y, label=labels[i], marker=marker_styles[i % len(marker_styles)], s=100)
-
-    plt.xlabel("Bitstrings")
-    plt.ylabel("Counts")
-    plt.title(title)
-    plt.legend()
-    plt.xticks(rotation=45, ha='right')
-    plt.grid(True, linestyle='--', alpha=0.5)
-    plt.tight_layout()
-    plt.show()
 
 # Prepare data for plotting
 results = [counts_noisy_dict, counts_optimized_dict, counts_ideal_dict]
