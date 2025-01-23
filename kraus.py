@@ -88,8 +88,6 @@ def reduce_noise_in_circuit(circuit, noise_model):
 
 from qiskit import QuantumCircuit
 
-from qiskit import QuantumCircuit
-
 # Step 1: Create a more complex quantum teleportation circuit
 qc = QuantumCircuit(6, 5)
 
