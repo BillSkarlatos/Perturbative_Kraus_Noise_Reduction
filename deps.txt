@@ -3,3 +3,4 @@ qiskit
 qiskit-aer
 cvxpy
 matplotlib
+pylatexenc

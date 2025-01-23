@@ -88,62 +88,66 @@ def reduce_noise_in_circuit(circuit, noise_model):
 
 from qiskit import QuantumCircuit
 
-# Step 1: Create a more complex quantum teleportation circuit
-qc = QuantumCircuit(6, 5)
+# Create a 12-qubit quantum circuit
+qc = QuantumCircuit(12)
 
-# Step 2: Prepare |ψ⟩ = |+⟩ = (|0⟩ + |1⟩)/sqrt(2) on the message qubit (qubit 0)
-qc.h(0)  # Message qubit is now in superposition
+# Apply Hadamard gates to create superposition on the first 3 qubits
+qc.h(0)
+qc.h(1)
+qc.h(2)
 
-# Step 3: Create an entangled pair between qubits 1 and 2
-qc.h(1)  # Apply a Hadamard gate on qubit 1
-qc.cx(1, 2)  # Apply a CNOT gate with qubit 1 as control and qubit 2 as target
+# Apply a series of controlled NOT gates (entangling qubits)
+qc.cx(0, 3)  # CNOT gate on qubit 0 and qubit 3
+qc.cx(1, 4)  # CNOT gate on qubit 1 and qubit 4
+qc.cx(2, 5)  # CNOT gate on qubit 2 and qubit 5
+qc.cx(3, 6)  # CNOT gate on qubit 3 and qubit 6
+qc.cx(4, 7)  # CNOT gate on qubit 4 and qubit 7
+qc.cx(5, 8)  # CNOT gate on qubit 5 and qubit 8
+qc.cx(6, 9)  # CNOT gate on qubit 6 and qubit 9
+qc.cx(7, 10) # CNOT gate on qubit 7 and qubit 10
+qc.cx(8, 11) # CNOT gate on qubit 8 and qubit 11
 
-# Step 4: Entangle the message qubit with qubit 1
-qc.cx(0, 1)  # CNOT gate with qubit 0 as control and qubit 1 as target
-qc.h(0)  # Hadamard gate on qubit 0
+# Apply a Hadamard gate to qubit 11 to introduce interference
+qc.h(11)
 
-# Step 5: Measure qubits 0 and 1 (Bell-state measurements)
-qc.measure(0, 0)  # Measure qubit 0 into classical bit 0
-qc.measure(1, 1)  # Measure qubit 1 into classical bit 1
+# Apply a controlled gate for some additional complexity
+qc.ccx(0, 1, 2)  # Toffoli gate (CCX gate) on qubits 0, 1, 2
 
-# Step 6: Conditional operations on qubit 2 based on measurement results
-qc.cx(1, 2)  # Apply a CNOT gate if classical bit 1 is 1
-qc.cz(0, 2)  # Apply a Z gate if classical bit 0 is 1
-
-# Step 7: Add operations on auxiliary qubits 3 and 4
-for i in range(3, 5):
-    qc.h(i)  # Apply Hadamard gates to create superpositions
-    qc.cx(i - 1, i)  # Entangle each qubit with the previous one
-    qc.measure(i, i)  # Measure each qubit into the corresponding classical bit
+# Measure the qubits
+qc.measure_all()
 
 # Visualize the circuit
-print("Enhanced Quantum Teleportation Circuit:")
-print(qc.draw())
+qc.draw('mpl')
 
 
 # Step 2: Define the noise model
 noise_model = NoiseModel()
 
 # Add depolarizing error
-depol_error_1q = depolarizing_error(0.01, 1)  # 2% depolarizing noise for 1-qubit gates
-depol_error_2q = depolarizing_error(0.025, 2)  # 5% depolarizing noise for 2-qubit gates
+depol_error_1q = depolarizing_error(0.01, 1)  # 1% depolarizing noise for 1-qubit gates
+depol_error_2q = depolarizing_error(0.025, 2)  # 2.5% depolarizing noise for 2-qubit gates
+depol_error_3q = depolarizing_error(0.035, 3)  # 3.5% depolarizing noise for 2-qubit gates
 
 # Add thermal relaxation error
 thermal_error_1q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=20e-6)
 thermal_error_2q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=40e-6)
+thermal_error_3q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=80e-6)
 
 # Add amplitude damping error
-amp_damp_error = amplitude_damping_error(0.05)  # 10% probability of amplitude damping
+amp_damp_error = amplitude_damping_error(0.05)  # 5% probability of amplitude damping
 
 # Combine errors (composite errors)
 composite_1q_error = depol_error_1q.compose(thermal_error_1q)
 composite_2q_error = depol_error_2q.compose(thermal_error_2q)
+composite_3q_error = depol_error_3q.compose(thermal_error_3q)
 
 # Step 3: Add errors to specific gates in the noise model
 # Single-qubit gates
 noise_model.add_all_qubit_quantum_error(composite_1q_error, ['u1', 'u2', 'u3', 'id'])
 # Two-qubit gates
 noise_model.add_all_qubit_quantum_error(composite_2q_error, ['cx'])
+# Three-qubit gates
+noise_model.add_all_qubit_quantum_error(composite_3q_error, ['ccx'])
 # Amplitude damping specifically to `id` gate
 noise_model.add_all_qubit_quantum_error(amp_damp_error, ['id'])
 
