@@ -7,6 +7,21 @@ import cvxpy as cp
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 
+# Function to normalize data (counts)
+def normalize_counts(counts, shots):
+    """
+    Normalize the counts data by dividing by the total number of shots to get probabilities.
+    
+    Args:
+    - counts: A dictionary of measurement outcomes with their counts.
+    - shots: Total number of shots (experiments).
+    
+    Returns:
+    - normalized_counts: A dictionary of normalized probabilities.
+    """
+    normalized_counts = {k: v / shots for k, v in counts.items()}
+    return normalized_counts
+
 # Function to plot results as scatter plots
 def plot_results_as_dots(results, labels, title):
     """
@@ -181,16 +196,16 @@ print("Noisy counts:", counts_noisy)
 print("Optimized counts:", counts_optimized)
 print("Ideal counts:", counts_ideal)
 
+shots=1024
+
 # Transform results into dictionaries for visualization
 counts_noisy_dict = {str(k): v for k, v in counts_noisy.items()}
 counts_optimized_dict = {str(k): v for k, v in counts_optimized.items()}
 counts_ideal_dict = {str(k): v for k, v in counts_ideal.items()}
 
-# # Debugging step: Verify transformed data
-# print("\nTransformed data for plotting:")
-# print("Noisy counts (dict):", counts_noisy_dict)
-# print("Optimized counts (dict):", counts_optimized_dict)
-# print("Ideal counts (dict):", counts_ideal_dict)
+normalized_counts_noisy = normalize_counts(counts_noisy_dict, shots)
+normalized_counts_optimized = normalize_counts(counts_optimized_dict, shots)
+normalized_counts_ideal = normalize_counts(counts_ideal_dict, shots)
 
 # Ensure alignment between printed and plotted data
 assert counts_noisy_dict == {str(k): v for k, v in counts_noisy.items()}, "Noisy data mismatch!"
@@ -199,7 +214,7 @@ assert counts_ideal_dict == {str(k): v for k, v in counts_ideal.items()}, "Ideal
 
 
 # Prepare data for plotting
-results = [counts_noisy_dict, counts_optimized_dict, counts_ideal_dict]
+results = [normalized_counts_noisy, normalized_counts_optimized, normalized_counts_ideal]
 labels = ["Noisy Model", "Optimized Noise Model", "Ideal Model"]
 
 # Plot the results as scatter plots
