@@ -6,35 +6,58 @@ import numpy as np
 import cvxpy as cp
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
-from applied_mathematics import *
+from calculations import *
 
 # Function to plot results as scatter plots
-def plot_results_as_dots(results, labels, title):
+def plot_results_as_dots(results, labels, title, label_step=10):
     """
-    Plot quantum simulation results as scatter plots.
+    Plot quantum simulation results as scatter plots, sorted by bitstrings, with properly aligned x-axis labels.
 
     Args:
     - results: List of dictionaries containing simulation results.
     - labels: List of strings for the labels of each dataset.
     - title: Title of the plot.
+    - label_step: Interval for showing x-axis labels (default is 10).
     """
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 8))
     marker_styles = ['o', 's', '^']  # Different markers for each dataset
 
-    # Iterate through each result set
-    for i, result in enumerate(results):
-        x = list(result.keys())  # Extract bitstrings
-        y = list(result.values())  # Extract counts
-        plt.scatter(x, y, label=labels[i], marker=marker_styles[i % len(marker_styles)], s=100)
+    # Process the results to ensure sorting by bitstrings
+    sorted_results = []
+    all_bitstrings = set()  # To gather all possible bitstrings for consistent alignment
+    for result in results:
+        sorted_items = sorted(result.items())  # Sort by bitstring keys
+        sorted_results.append(sorted_items)
+        all_bitstrings.update(result.keys())
+
+    # Sort all bitstrings globally for alignment
+    all_bitstrings = sorted(all_bitstrings)
+
+    # Plot data for each result
+    for i, sorted_result in enumerate(sorted_results):
+        # Create full y-data aligned with all_bitstrings
+        y_data = [dict(sorted_result).get(bitstring, 0) for bitstring in all_bitstrings]
+        plt.scatter(range(len(all_bitstrings)), y_data, label=labels[i],
+                    marker=marker_styles[i % len(marker_styles)], s=100)
+
+    # Customize x-axis labels
+    plt.xticks(
+        ticks=range(0, len(all_bitstrings), label_step),  # Label every `label_step` ticks
+        labels=[all_bitstrings[i] for i in range(0, len(all_bitstrings), label_step)],
+        rotation=45,
+        ha='right'
+    )
 
     plt.xlabel("Bitstrings")
     plt.ylabel("Counts")
     plt.title(title)
     plt.legend()
-    plt.xticks(rotation=45, ha='right')
     plt.grid(True, linestyle='--', alpha=0.5)
     plt.tight_layout()
     plt.show()
+
+
+
 
 def reduce_noise_in_circuit(circuit, noise_model):
     """Reduce noise in a given quantum circuit."""
@@ -61,70 +84,10 @@ def reduce_noise_in_circuit(circuit, noise_model):
 
     return optimized_noise_model
 
-from qiskit import QuantumCircuit
+qubit_num=15
 
-# Create a 12-qubit quantum circuit
-qc = QuantumCircuit(12)
-
-# Apply Hadamard gates to create superposition on the first 3 qubits
-qc.h(0)
-qc.h(1)
-qc.h(2)
-
-# Apply a series of controlled NOT gates (entangling qubits)
-qc.cx(0, 3)  # CNOT gate on qubit 0 and qubit 3
-qc.cx(1, 4)  # CNOT gate on qubit 1 and qubit 4
-qc.cx(2, 5)  # CNOT gate on qubit 2 and qubit 5
-qc.cx(3, 6)  # CNOT gate on qubit 3 and qubit 6
-qc.cx(4, 7)  # CNOT gate on qubit 4 and qubit 7
-qc.cx(5, 8)  # CNOT gate on qubit 5 and qubit 8
-qc.cx(6, 9)  # CNOT gate on qubit 6 and qubit 9
-qc.cx(7, 10) # CNOT gate on qubit 7 and qubit 10
-qc.cx(8, 11) # CNOT gate on qubit 8 and qubit 11
-
-# Apply a Hadamard gate to qubit 11 to introduce interference
-qc.h(11)
-
-# Apply a controlled gate for some additional complexity
-qc.ccx(0, 1, 2)  # Toffoli gate (CCX gate) on qubits 0, 1, 2
-
-# Measure the qubits
-qc.measure_all()
-
-# Visualize the circuit
-qc.draw('mpl')
-
-
-# Step 2: Define the noise model
-noise_model = NoiseModel()
-
-# Add depolarizing error
-depol_error_1q = depolarizing_error(0.01, 1)  # 1% depolarizing noise for 1-qubit gates
-depol_error_2q = depolarizing_error(0.025, 2)  # 2.5% depolarizing noise for 2-qubit gates
-depol_error_3q = depolarizing_error(0.035, 3)  # 3.5% depolarizing noise for 2-qubit gates
-
-# Add thermal relaxation error
-thermal_error_1q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=20e-6)
-thermal_error_2q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=40e-6)
-thermal_error_3q = thermal_relaxation_error(t1=50e-6, t2=30e-6, time=80e-6)
-
-# Add amplitude damping error
-amp_damp_error = amplitude_damping_error(0.05)  # 5% probability of amplitude damping
-
-# Combine errors (composite errors)
-composite_1q_error = depol_error_1q.compose(thermal_error_1q)
-composite_2q_error = depol_error_2q.compose(thermal_error_2q)
-composite_3q_error = depol_error_3q.compose(thermal_error_3q)
-
-# Step 3: Add errors to specific gates in the noise model
-# Single-qubit gates
-noise_model.add_all_qubit_quantum_error(composite_1q_error, ['u1', 'u2', 'u3', 'id'])
-# Two-qubit gates
-noise_model.add_all_qubit_quantum_error(composite_2q_error, ['cx'])
-# Three-qubit gates
-noise_model.add_all_qubit_quantum_error(composite_3q_error, ['ccx'])
-# Amplitude damping specifically to `id` gate
-noise_model.add_all_qubit_quantum_error(amp_damp_error, ['id'])
+qc,noise_model=generate(qubit_num)
+print(qc.draw())
 
 # Step 4: Simulate the circuit with the noisy model
 noisy_backend = AerSimulator(noise_model=noise_model)
@@ -151,10 +114,10 @@ result_ideal = job_ideal.result()
 counts_ideal = result_ideal.get_counts()
 
 # Debugging step: Ensure consistency in printed and plotted data
-print("Raw results from simulation:")
-print("Noisy counts:", counts_noisy)
-print("Optimized counts:", counts_optimized)
-print("Ideal counts:", counts_ideal)
+# print("Raw results from simulation:")
+# print("Noisy counts:", counts_noisy)
+# print("Optimized counts:", counts_optimized)
+# print("Ideal counts:", counts_ideal)
 
 shots=1024
 
@@ -172,13 +135,24 @@ assert counts_noisy_dict == {str(k): v for k, v in counts_noisy.items()}, "Noisy
 assert counts_optimized_dict == {str(k): v for k, v in counts_optimized.items()}, "Optimized data mismatch!"
 assert counts_ideal_dict == {str(k): v for k, v in counts_ideal.items()}, "Ideal data mismatch!"
 
+print("Fidelity of noisy system: ", calculate_fidelity(ideal_counts=normalized_counts_ideal, test_counts=normalized_counts_noisy))
+print("Fidelity of corrected system: ", calculate_fidelity(ideal_counts=normalized_counts_ideal, test_counts=normalized_counts_optimized))
 
 # Prepare data for plotting
 results = [normalized_counts_noisy, normalized_counts_optimized, normalized_counts_ideal]
 labels = ["Noisy Model", "Optimized Noise Model", "Ideal Model"]
 
 # Plot the results as scatter plots
-plot_results_as_dots(results, labels, "Comparison of Simulation Results")
+step=1
+if (qubit_num >= 16):
+    step = int(6*qubit_num)
+elif (qubit_num >=12):
+    step = int(3*qubit_num)
+elif (qubit_num >= 8):
+    step = int(1.5*qubit_num)
+elif (qubit_num >= 4):
+    step = int(0.75*qubit_num)
+plot_results_as_dots(results, labels, "Comparison of Simulation Results", step)
 
 
 
