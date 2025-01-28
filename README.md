@@ -88,7 +88,7 @@ print("Fidelity of corrected system:", fidelity)
 3. **CPTP Projection Optimization**
    - Enforces physical constraints on the corrected quantum channel by solving the convex optimization problem:
      
-     $Min_{\mathcal{E}_{\text{CPTP}}} \| \mathcal{E}_{\text{corrected}} - \mathcal{E}_{\text{CPTP}}\|$
+     $Min_{\mathcal{E}_{\text{CPTP}}} | \mathcal{E}_{\text{corrected}} - \mathcal{E}_{\text{CPTP}}|$
      
    - This projection ensures that the resultant quantum operation is completely positive and trace-preserving.
 
