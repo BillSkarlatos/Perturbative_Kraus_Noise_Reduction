@@ -81,23 +81,29 @@ print("Fidelity of corrected system:", fidelity)
 2. **Perturbative Noise Correction**
    - Employs first-order perturbation theory to approximate corrections to the noisy quantum channel:
      
-     \[\mathcal{E}_{\text{corrected}} = \mathcal{E}_{\text{noisy}} + \delta \mathcal{E} \]
+     ```math
+     \mathcal{E}_{\text{corrected}} = \mathcal{E}_{\text{noisy}} + \delta \mathcal{E}
+     ```
      
-   - The perturbation term \( \delta \mathcal{E} \) is derived from the superoperator representation of quantum noise.
+   - The perturbation term $\delta \mathcal{E}$ is derived from the superoperator representation of quantum noise.
 
 3. **CPTP Projection Optimization**
    - Enforces physical constraints on the corrected quantum channel by solving the convex optimization problem:
      
-     \[\min_{\mathcal{E}_{\text{CPTP}}} \| \mathcal{E}_{\text{corrected}} - \mathcal{E}_{\text{CPTP}} \| \]
+     ```math
+     \min_{\mathcal{E}_{\text{CPTP}}} \| \mathcal{E}_{\text{corrected}} - \mathcal{E}_{\text{CPTP}} \|
+     ```
      
    - This projection ensures that the resultant quantum operation is completely positive and trace-preserving.
 
 4. **Fidelity Evaluation**
    - Compares the statistical distance between noisy, corrected, and ideal quantum states using the fidelity metric:
      
-     \[ F(\mathcal{E}_1, \mathcal{E}_2) = \left( \sum_i \sqrt{ P_1(i) P_2(i) } \right)^2 \]
+     ```math
+     F(\mathcal{E}_1, \mathcal{E}_2) = \left( \sum_i \sqrt{ P_1(i) P_2(i) } \right)^2
+     ```
      
-   - Here, \( P_1 \) and \( P_2 \) denote probability distributions obtained from quantum measurement outcomes.
+   - Here, $P_1$ and $P_2$ denote probability distributions obtained from quantum measurement outcomes.
 
 ## Performance and Experimental Results
 Extensive numerical simulations confirm that increasing the number of qubits enhances the efficacy of noise correction. The observed improvements in fidelity are consistent with theoretical predictions that noise mitigation via perturbative methods scales favorably with system size.
