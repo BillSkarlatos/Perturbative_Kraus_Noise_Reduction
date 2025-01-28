@@ -84,7 +84,7 @@ def reduce_noise_in_circuit(circuit, noise_model):
 
     return optimized_noise_model
 
-qubit_num=15
+qubit_num=2
 
 qc,noise_model=generate(qubit_num)
 print(qc.draw())
@@ -137,6 +137,7 @@ assert counts_ideal_dict == {str(k): v for k, v in counts_ideal.items()}, "Ideal
 
 print("Fidelity of noisy system: ", calculate_fidelity(ideal_counts=normalized_counts_ideal, test_counts=normalized_counts_noisy))
 print("Fidelity of corrected system: ", calculate_fidelity(ideal_counts=normalized_counts_ideal, test_counts=normalized_counts_optimized))
+print("Ratio (ideal/noisy): ",calculate_fidelity(ideal_counts=normalized_counts_ideal, test_counts=normalized_counts_optimized)/calculate_fidelity(ideal_counts=normalized_counts_ideal, test_counts=normalized_counts_noisy))
 
 # Prepare data for plotting
 results = [normalized_counts_noisy, normalized_counts_optimized, normalized_counts_ideal]
