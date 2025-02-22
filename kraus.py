@@ -84,10 +84,10 @@ def reduce_noise_in_circuit(circuit, noise_model):
 
     return optimized_noise_model
 
-qubit_num=2
+qubit_num=4
 
 qc,noise_model=generate(qubit_num)
-print(qc.draw())
+# qc.draw('mpl')
 
 # Step 4: Simulate the circuit with the noisy model
 noisy_backend = AerSimulator(noise_model=noise_model)
