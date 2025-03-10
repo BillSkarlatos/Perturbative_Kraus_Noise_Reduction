@@ -122,8 +122,7 @@ Fidelity of corrected system: 0.97
 
 ## Citation
 For academic or research use, please cite:
-> *Kraus, K. (1983)*. States, Effects, and Operations: Fundamental Notions of Quantum Theory.
-> *Choi, M.-D. (1975)*. Completely positive linear maps on complex matrices. Linear Algebra and Its Applications, 10(3), 285–290.
+> Pending . . .
 
 ## License
 This repository is available under the [MIT License](LICENSE).
