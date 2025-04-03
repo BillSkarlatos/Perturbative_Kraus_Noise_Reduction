@@ -4,3 +4,4 @@ qiskit-aer
 cvxpy
 matplotlib
 pylatexenc
+seaborn
