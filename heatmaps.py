@@ -67,5 +67,5 @@ def simulate_and_plot(qubit_num, shots=1024):
 
 
 if __name__ == '__main__':
-    qubit_num = 4  # Example: can be changed
+    qubit_num = 4  # Example: can be changed.
     simulate_and_plot(qubit_num)
